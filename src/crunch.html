@@ -1,0 +1,16 @@
+<body>
+<h1>Crunch</h1>
+<script type="module">
+  import {createDb} from "./crunch-api.mjs";
+  const db = createDb();
+  db.exec('CREATE TABLE peaks (name TEXT, elv INTEGER)');
+  db.exec('INSERT INTO peaks (name, elv) VALUES ("Olympus Mons", 21171)');
+  db.exec('INSERT INTO peaks (name, elv) VALUES ("Everest", 8848)');
+  db.exec('SELECT * from peaks ORDER BY elv').then(result => {
+    for (const [name, elevation] of result.rows) {
+      console.log(name, elevation);
+    }
+  }).catch(e => console.error);
+
+</script>
+

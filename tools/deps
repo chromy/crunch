@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import urllib.request
+import shutil
+import hashlib
+import zipfile
+import subprocess
+
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DEPS = [
+  ('deps/emsdk/emscripten.tgz',
+   'https://storage.googleapis.com/tsundoku-io-deps/emscripten-1.38.30.tar.gz',
+   '3dd36e390598d96e4534eb78c86c617058a6338e',
+   'all'
+  ),
+  ('deps/emsdk/llvm.tgz',
+   'https://storage.googleapis.com/tsundoku-io-deps/emscripten-llvm-e1.38.30-darwin.tar.gz',
+   'aaed862d94451a3fe18fce9b340119c391327f98',
+   'darwin'
+  ),
+  ('deps/sqlite.zip',
+   'https://storage.googleapis.com/perfetto/sqlite-amalgamation-3250300.zip',
+   'b78c2cb0d2c9182686c582312479f96a82bf5380',
+   'all'
+  ),
+  ('deps/node.tgz',
+   'https://storage.googleapis.com/tsundoku-io-deps/node-v11.14.0-darwin-x64.tar.gz',
+   'c2f549471e0b8d4eccb89c21b173222207a98734',
+   'darwin',
+  )
+]
+
+def ReadFile(path):
+  if not os.path.exists(path):
+    return None
+  with open(path) as f:
+      return f.read().strip()
+
+def MkdirRecursive(path):
+  # Works with both relative and absolute paths
+  cwd = '/' if path.startswith('/') else ROOT_DIR
+  for part in path.split('/'):
+    cwd = os.path.join(cwd, part)
+    if os.path.exists(cwd):
+      assert os.path.isdir(cwd)
+    else:
+      os.makedirs(cwd)
+
+def HashLocalFile(path):
+  if not os.path.exists(path):
+    return None
+  with open(path, 'rb') as f:
+    return hashlib.sha1(f.read()).hexdigest()
+
+def ExtractZipfilePreservePermissions(zf, info, path):
+  zf.extract(info.filename, path=path)
+  target_path = os.path.join(path, info.filename)
+  min_acls = 0o755 if info.filename.endswith('/') else 0o644
+  os.chmod(target_path, (info.external_attr >> 16) | min_acls)
+
+def IsGitRepoCheckoutOutAtRevision(path, revision):
+  return ReadFile(os.path.join(path, '.git', 'HEAD')) == revision
+
+def CheckoutGitRepo(path, git_url, revision):
+  if IsGitRepoCheckoutOutAtRevision(path, revision):
+    return False
+  if os.path.exists(path):
+    shutil.rmtree(path)
+  MkdirRecursive(path)
+  print('Fetching {} @ {} into {}'.format(git_url, revision, path))
+  subprocess.check_call(['git', 'init', path], cwd=path)
+  subprocess.check_call(
+    ['git', 'fetch', '--quiet', '--depth', '1', git_url, revision], cwd=path)
+  subprocess.check_call(['git', 'checkout', revision, '--quiet'], cwd=path)
+  assert(IsGitRepoCheckoutOutAtRevision(path, revision))
+  return True
+
+def Main():
+  for path, url, expected_sha1, platform in DEPS:
+    if platform != 'all' and platform != sys.platform:
+      continue
+
+    local_path = os.path.join(ROOT_DIR, path)
+
+    if url.endswith('.git'):
+      CheckoutGitRepo(local_path, url, expected_sha1)
+      continue
+
+    is_zip = path.endswith('.zip')
+    is_tgz = path.endswith('.tgz')
+    is_archive = is_zip or is_tgz
+    archive_target_dir = None
+    archive_dir_stamp = None
+    if is_archive:
+      archive_target_dir = local_path[:-4]
+      archive_dir_stamp = os.path.join(archive_target_dir, '.stamp')
+    
+    if is_archive:
+      if ReadFile(archive_dir_stamp) == expected_sha1:
+        continue
+    else:
+      if HashLocalFile(local_path) == expected_sha1:
+        continue
+
+    MkdirRecursive(os.path.dirname(path))
+    if HashLocalFile(local_path) != expected_sha1:
+      download_path = local_path + '.tmp'
+      print('Downloading {} from {}'.format(local_path, url))
+      urllib.request.urlretrieve(url, download_path)
+      os.chmod(download_path, 0o755)
+      actual_sha1 = HashLocalFile(download_path)
+      if actual_sha1 != expected_sha1:
+        os.remove(download_path)
+        print('SHA1 mismatch for {} (expected {} got {})'.format(
+          download_path, expected_sha1, actual_sha1))
+        return 1
+      os.rename(download_path, local_path)
+    assert HashLocalFile(local_path) == expected_sha1
+
+    if is_archive:
+      print('Extracting {} into {}'.format(local_path, archive_target_dir))
+      assert os.path.commonprefix((ROOT_DIR, archive_target_dir)) == ROOT_DIR
+      if os.path.exists(archive_target_dir):
+        print('Deleting stale dir {}'.format(archive_target_dir))
+        shutil.rmtree(archive_target_dir)
+
+      if is_tgz:
+        MkdirRecursive(archive_target_dir)
+        subprocess.check_call(['tar', '-xf', local_path], cwd=archive_target_dir)
+
+      if is_zip:
+        with zipfile.ZipFile(local_path, 'r') as zf:
+          for info in zf.infolist():
+            ExtractZipfilePreservePermissions(zf, info, archive_target_dir)
+
+
+      # If the zip contains one root folder, rebase one level up moving all
+      # its sub files and folders inside |target_dir|.
+      subdir = os.listdir(archive_target_dir)
+      if len(subdir) == 1:
+        subdir = os.path.join(archive_target_dir, subdir[0])
+        if os.path.isdir(subdir):
+          for subf in os.listdir(subdir):
+            shutil.move(os.path.join(subdir, subf), archive_target_dir)
+          os.rmdir(subdir)
+
+      # Create stamp and remove the archive.
+      with open(archive_dir_stamp, 'w') as stamp_file:
+        stamp_file.write(expected_sha1)
+      os.remove(local_path)
+
+
+if __name__ == '__main__':
+  exit(Main())
