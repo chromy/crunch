@@ -27,10 +27,15 @@ DEPS = [
    'all'
   ),
   ('deps/node.tgz',
-   'https://storage.googleapis.com/tsundoku-io-deps/node-v11.14.0-darwin-x64.tar.gz',
-   'c2f549471e0b8d4eccb89c21b173222207a98734',
+   'https://storage.googleapis.com/tsundoku-io-deps/node-v12.0.0-darwin-x64.tar.gz',
+   'b408bc59cd2d40d531673bbf8c2ddd8a5773b1bd',
    'darwin',
-  )
+  ),
+  ('deps/mithril',
+    'https://github.com/MithrilJS/mithril.js.git',
+    'c803918f0059a129f3bf61e807b93c2e07534f38',
+    'all',
+  ),
 ]
 
 def ReadFile(path):

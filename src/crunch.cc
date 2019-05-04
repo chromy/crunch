@@ -47,6 +47,7 @@ bool EMSCRIPTEN_KEEPALIVE crunch_exec(int id, const char* query) {
 } // extern "C"
 
 int main(int argc, char **argv) {
+  printf("??????????????????\n");
   return 0;
 }
 

@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+
+PREFIX = """
+export class RawCrunchModuleWrapper {
+  constructor(module) {
+    this.module = module;
+  }
+
+"""
+
+SUFFIX = """}
+"""
+
+class Function(object):
+  def __init__(self, name, result, arguments):
+    self.name = name
+    self.result = result
+    self.arguments = arguments
+
+  @property
+  def js_args(self):
+    return ', '.join(arg.name for arg in self.arguments if not arg.is_out)
+
+  @property
+  def js_return(self):
+    if any(arg.is_out for arg in self.arguments):
+      args = ['result'] + [a.name for a in self.arguments if a.is_out]
+      return '[{}]'.format(', '.join(args))
+    else:
+      return 'result'
+
+  @property
+  def js_arg_types(self):
+    return [arg.js_type for arg in self.arguments]
+
+  @property
+  def js_arg_names(self):
+    return '[' + ', '.join([arg.name + 'Ptr' if arg.is_out else arg.name for arg in self.arguments]) + ']'
+
+  @property
+  def out_arguments(self):
+    return (arg for arg in self.arguments if arg.is_out)
+
+  @property
+  def has_out_parameters(self):
+    return list(self.out_arguments) != []
+
+  def write_js_method(self, w):
+    w.indent()
+    w.line("{f.name}({f.js_args}) {{", f=self)
+    w.indent()
+    if self.has_out_parameters:
+      w.line("const sp = this.module.stackSave();")
+    for arg in self.out_arguments:
+      w.line("const {arg.name}Ptr = this.module.allocate(4, 'u32', this.module.ALLOC_STACK);", arg=arg)
+    w.line("const result = this.module.ccall('{f.name}', '{f.result.js_type}', {f.js_arg_types}, {f.js_arg_names});", f=self)
+    for arg in self.out_arguments:
+      w.line("const {arg.name} = this.module.HEAPU32[{arg.name}Ptr/4];", arg=arg) 
+ 
+    if self.has_out_parameters:
+      w.line("this.module.stackRestore(sp);")
+    w.line("return {f.js_return};", f=self)
+    w.dedent()
+    w.line("}}")
+    w.dedent()
+    w.line("")
+
+class Kind(object):
+  def __init__(self, ctype):
+    self.ctype = ctype
+
+  @property
+  def js_type(self):
+    if 'char' in self.ctype:
+      return 'string'
+    return 'number'
+
+class Arg(object):
+  def __init__(self, kind, name=None, is_out=False):
+    self.kind = kind
+    self.is_out = is_out
+    self.name = name
+
+  @property  
+  def js_type(self):
+    return self.kind.js_type
+
+Cstr = Kind('char *')
+ConstCstr = Kind('const char *')
+DbPtr = Kind('sqlite3*')
+Double = Kind('double')
+ColumnType = Kind('int')
+Int = Kind('int')
+StmtPtr = Kind('sqlite3_stmt*')
+SqlResultCode = Kind('int')
+
+METHODS = [
+  Function('sqlite3_open', SqlResultCode, [
+    Arg(Cstr, name='filename'),
+    Arg(DbPtr, name='ppDb', is_out=True),
+  ]),
+  Function('sqlite3_step', SqlResultCode, [
+    Arg(StmtPtr, name='stmt'),
+  ]),
+  Function('sqlite3_prepare_v2', SqlResultCode, [
+    Arg(DbPtr, name='db'),
+    Arg(ConstCstr, name='zSql'),
+    Arg(Int, name='numBytes'),
+    Arg(StmtPtr, name='ppStmt', is_out=True),
+    Arg(ConstCstr, name='pzTail', is_out=True),
+  ]),
+  Function('sqlite3_close', SqlResultCode, [
+    Arg(DbPtr, name='db'),
+  ]),
+  Function('sqlite3_finalize', SqlResultCode, [
+    Arg(StmtPtr, name='pStmt'),
+  ]),
+  Function('sqlite3_column_count', Int, [
+    Arg(StmtPtr, name='pStmt'),
+  ]),
+  Function('sqlite3_column_blob', Int, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_column_double', Double, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_column_int', Int, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_column_text', ConstCstr, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_column_text16', Int, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_column_type', ColumnType, [
+    Arg(StmtPtr, name='pStmt'),
+    Arg(Int, name='iCol'),
+  ]),
+  Function('sqlite3_errmsg', ConstCstr, [
+    Arg(DbPtr, name='db'),
+  ]),
+  Function('sqlite3_errstr', ConstCstr, [
+    Arg(Int, name='code'),
+  ]),
+  Function('sqlite3_errcode', Int, [
+    Arg(DbPtr, name='db'),
+  ]),
+]
+
+
+class Writer(object):
+  def __init__(self, f, indent=0):
+    self.f = f
+    self._indent = indent
+
+  def line(self, s, **kargs):
+    self.f.write(('  ' * self._indent) + s.format(**kargs)+'\n')
+
+  def indent(self):
+    self._indent += 1
+
+  def dedent(self):
+    self._indent -= 1
+
+
+def main(args):
+  assert len(args) == 3
+  in_path = args[1]
+  out_path = args[2]
+
+  with open(in_path) as f:
+    s = f.read()
+
+  #definitions = []
+  #p = re.compile(r'SQLITE_API.*?\(')
+  #i = 0
+  #while True:
+  #  m = p.search(s, i)
+  #  if not m:
+  #    break
+  #  start = m.start()
+  #  j = end = m.end()
+  #  count = 1
+  #  while count > 0:
+  #    c = s[j]
+  #    if c == '(':
+  #      count += 1
+  #    elif c == ')':
+  #      count -= 1
+  #    j += 1
+  #  i = end = j+1
+  #  definitions.append(s[start:end])
+
+  with open(out_path, 'w') as f:
+    f.write(PREFIX);
+    for method in METHODS:
+      method.write_js_method(Writer(f))
+    f.write(SUFFIX);
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv)) 
