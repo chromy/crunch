@@ -227,6 +227,7 @@ def rules(n, src_path, abs_src_path):
     description='GEN RAW BINDINGS',
   )
   n.rule('copy', 'cp -rf $in $out', description='COPY')
+  n.rule('bundle', 'px --external-core $in -o $out', description='BUNDLE')
   emconfig = ';'.join([
     "LLVM_ROOT='$EMSDK_DIR/llvm'",
     "EMSCRIPTEN_ROOT='$EMSDK_DIR/emscripten'",
@@ -537,9 +538,17 @@ def rules(n, src_path, abs_src_path):
   n.build('$OUT/end_to_end_systemtest.mjs', 'copy', ['$SRC/src/end_to_end_systemtest.mjs'])
   n.build('$OUT/sqlite_raw_bindings_systemtest.mjs', 'copy', ['$SRC/src/sqlite_raw_bindings_systemtest.mjs'])
   n.build('$OUT/run_systemtests.mjs', 'copy', ['$SRC/src/run_systemtests.mjs'])
+  n.build('$OUT/browser_entry_point.mjs', 'copy', ['$SRC/src/browser_entry_point.mjs'])
+  n.build('$OUT/package.json', 'copy', ['$SRC/src/package.json'])
   n.build('$OUT/raw.mjs', 'gen_raw_bindings', ['$SRC/deps/sqlite/sqlite3.h'], implicit=[
     '$SRC/tools/gen_raw_bindings',
   ])
+  n.build('$OUT/crunch.bundle.js', 'bundle', ['$OUT/browser_entry_point.mjs'], implicit=[
+    '$OUT/index.mjs',
+    '$OUT/sqlite_codes.mjs',
+    '$OUT/crunch.js',
+  ])
+
 
 if __name__ == '__main__':
   exit(main())

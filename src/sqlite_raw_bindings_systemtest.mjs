@@ -30,7 +30,7 @@ o("sqlite3_stmt", async () => {
   o(engine.raw.sqlite3_step(stmt)).equals(SQLITE_ROW);
 
   o(engine.raw.sqlite3_column_count(stmt)).equals(1);
-  o(engine.raw.sqlite3_column_type(stmt)).equals(SQLITE_INTEGER);
+  o(engine.raw.sqlite3_column_type(stmt, 0)).equals(SQLITE_INTEGER);
   o(engine.raw.sqlite3_column_int(stmt, 0)).equals(2);
 
   o(engine.raw.sqlite3_finalize(stmt)).equals(SQLITE_OK);

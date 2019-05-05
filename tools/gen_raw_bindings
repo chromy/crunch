@@ -154,6 +154,10 @@ METHODS = [
   Function('sqlite3_errcode', Int, [
     Arg(DbPtr, name='db'),
   ]),
+  Function('sqlite3_column_name', ConstCstr, [
+    Arg(StmtPtr, name='stmt'),
+    Arg(Int, name='iCol'),
+  ]),
 ]
 
 

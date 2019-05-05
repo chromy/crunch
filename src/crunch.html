@@ -1,16 +1,136 @@
-<body>
-<h1>Crunch</h1>
-<script type="module">
-  import {createDb} from "./crunch-api.mjs";
-  const db = createDb();
-  db.exec('CREATE TABLE peaks (name TEXT, elv INTEGER)');
-  db.exec('INSERT INTO peaks (name, elv) VALUES ("Olympus Mons", 21171)');
-  db.exec('INSERT INTO peaks (name, elv) VALUES ("Everest", 8848)');
-  db.exec('SELECT * from peaks ORDER BY elv').then(result => {
-    for (const [name, elevation] of result.rows) {
-      console.log(name, elevation);
-    }
-  }).catch(e => console.error);
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"/>
 
+<body class="pl5 pr5 near-black helvetica">
+<main></main>
+
+<script src="crunch.bundle.js"></script>
+<script src="https://unpkg.com/mithril/mithril.js"></script>
+<script>
+  const CODE_SAMPLE = `import {createEngine} from 'crunch';
+const engine = await crunch.createEngine();
+const db = engine.open();
+
+db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
+db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
+db.query('SELECT * FROM peaks');
+`;
+  let db = null;
+  async function initDb() {
+    const engine = await crunch.createEngine();
+    db = engine.open();
+    db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Annapurna", 8091)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Broad Peak", 8051)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Cho Oyu", 8201)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Dhaulagiri", 8167)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Everest", 8848)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Gasherbrum I", 8080)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Gasherbrum II", 8035)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("K2", 8611)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Kangchenjunga", 8586)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Lhotse", 8516)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Makalu", 8485)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Manaslu", 8163)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Mount Everest",	8848)')
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Nanga Parbat", 8126)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
+    db.exec('INSERT INTO peaks (name, m) VALUES ("Shishapangma", 8027)');
+    m.redraw();
+  }
+
+  let currentQuery = null;
+  let currentHeaders = null;
+  let currentRows = null;
+  let currentError = null;
+  function updateQuery(q) {
+    if (db === null)
+      return;
+    if (!q)
+      return;
+    if (currentQuery === q)
+      return;
+    currentQuery = q;
+    try {
+      const result = db.query(q);
+      currentHeaders = result.columns;
+      currentRows = [...result];
+      currentError = null;
+    } catch(e) {
+      currentHeaders = null;
+      currentRows = null;
+      currentError = e;
+    }
+  }
+
+  class Home {
+
+    queryStyle(query) {
+      const length = query.length;
+      if (length > 70) {
+        return 'f7';
+      } else if (length > 60) {
+        return 'f6';
+      } else if (length > 50) {
+        return 'f5';
+      } else if (length > 40) {
+        return 'f4';
+      } else if (length > 20) {
+        return 'f3';
+      } else {
+        return 'f2';
+      }
+    }
+
+    view({attrs}) {
+      updateQuery(attrs.value);
+      return [
+        m('h1.tc.mb0.f-headline.lh-solid', 'Crunch'),
+        m('h2.tc.mt0.mb4.fw4.lh-solid', 'sqlite3 in the browser'),
+        m('.center.w-50',
+          m('label[for=query].gray.db', 'Query'),
+          m('input[type=text]#query.center.db.code.pa1.mb1.mt1.w-100', {
+            style: 'height: 53px',
+            class: this.queryStyle(attrs.value || ''),
+            value: db === null ? '' : attrs.value,
+            onchange: e => attrs.value = e.target.value,
+            oninput: e => attrs.value = e.target.value,
+            disabled: db === null,
+          }),
+          m('.gray',
+            'Try: ',
+            m('span.blue.pointer', { 
+              onclick: e => attrs.value = e.target.innerText,
+            }, 'select *, round(m*3.28) as ft from peaks order by m desc'), ', ',
+            m('span.blue.pointer', {
+              onclick: e => attrs.value = e.target.innerText,
+            }, 'select sum(m) as elevation from peaks'), '.',
+          ),
+          currentError && m('.red.mt4', currentError.message),
+          currentHeaders && m('table.mt4.collapse.ba.br2.b--black-10.pv2.ph3.w-100',
+            m('tr.striped--light-gray', currentHeaders.map(h => m('th.pv2.ph3.tl.f6.fw6.ttu', h))),
+            currentRows.map(r => m('tr.striped--light-gray',
+              currentHeaders.map(h => m('td.pv2.ph3', r[h]),
+            ))),
+          ),
+          m('.mt5.mb5', 'Example'),
+          m('.gray.lh-copy', 'Example'),
+          m('pre.lh-copy.code', CODE_SAMPLE),
+        ),
+      ];
+    }
+  }
+
+  function init() {
+    initDb();
+    const root = document.querySelector('main');
+    
+    m.route(root, "/", {
+        "/": Home,
+    });
+  }
+
+  init();
 </script>
 
