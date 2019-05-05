@@ -508,6 +508,7 @@ def rules(n, src_path, abs_src_path):
   options = ' '.join([
     '-g4',
     "-Wall",
+    "-Os",
     "-isystem $SRC/deps/sqlite",
     "-s EXPORTED_FUNCTIONS=[{}]".format(','.join("'_{}'".format(s) for s in sqlite_methods)),
     "-s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap','ccall','FS','ALLOC_STACK','allocate']",
@@ -531,7 +532,6 @@ def rules(n, src_path, abs_src_path):
   n.build('$OUT/crunch-api.mjs', 'copy', ['$SRC/src/crunch-api.mjs'])
   n.build('$OUT/index.mjs', 'copy', ['$SRC/src/index.mjs'])
   n.build('$OUT/sqlite_codes.mjs', 'copy', ['$SRC/src/sqlite_codes.mjs'])
-  n.build('$OUT/crunch.html', 'copy', ['$SRC/src/crunch.html'])
   n.build('$OUT/node_modules/ospec/ospec.mjs', 'copy', ['$SRC/deps/mithril/ospec/ospec.mjs'])
   n.build('$OUT/node_modules/ospec/ospec.js', 'copy', ['$SRC/deps/mithril/ospec/ospec.js'])
   n.build('$OUT/node_modules/ospec/package.json', 'copy', ['$SRC/deps/mithril/ospec/package.json'])
@@ -548,6 +548,12 @@ def rules(n, src_path, abs_src_path):
     '$OUT/sqlite_codes.mjs',
     '$OUT/crunch.js',
   ])
+
+  n.build('$OUT/site/tachyons.min.css', 'copy', ['$SRC/deps/tachyons/css/tachyons.min.css'])
+  n.build('$OUT/site/mithril.min.js', 'copy', ['$SRC/deps/mithril/mithril.min.js'])
+  n.build('$OUT/site/crunch.wasm', 'copy', ['$OUT/crunch.wasm'])
+  n.build('$OUT/site/crunch.bundle.js', 'copy', ['$OUT/crunch.bundle.js'])
+  n.build('$OUT/site/index.html', 'copy', ['$SRC/src/crunch.html'])
 
 
 if __name__ == '__main__':

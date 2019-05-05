@@ -36,6 +36,11 @@ DEPS = [
     'c803918f0059a129f3bf61e807b93c2e07534f38',
     'all',
   ),
+  ('deps/tachyons',
+    'https://github.com/tachyons-css/tachyons.git',
+    'c0f54d390af447173d4846b69314d23c29fe608d',
+    'all',
+  ),
 ]
 
 def ReadFile(path):
