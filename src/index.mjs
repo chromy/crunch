@@ -9,8 +9,9 @@ class CrunchEngine {
     this.raw = new RawCrunchModuleWrapper(module);
   }
 
-  open() {
+  open(opt_file) {
     const [result, db] = this.raw.sqlite3_open(':memory:');
+    this.module.FS.writeFile('db', 'hello');
     if (result !== SQLITE_OK) {
       throw new Error(`Unable to open database`);
     }

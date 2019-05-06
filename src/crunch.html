@@ -64,27 +64,9 @@ db.query('SELECT * FROM peaks');
     }
   }
 
-  class Home {
+  class Layout {
 
-    queryStyle(query) {
-      const length = query.length;
-      if (length > 70) {
-        return 'f7';
-      } else if (length > 60) {
-        return 'f6';
-      } else if (length > 50) {
-        return 'f5';
-      } else if (length > 40) {
-        return 'f4';
-      } else if (length > 20) {
-        return 'f3';
-      } else {
-        return 'f2';
-      }
-    }
-
-    view({attrs}) {
-      updateQuery(attrs.value);
+    view({children}) {
       return [
         m('h1.tc.mb0.f-headline.lh-solid'),
         m('.center.w-50-ns',
@@ -131,36 +113,7 @@ db.query('SELECT * FROM peaks');
     )
   ]
 )),
-    
-//    m('h2.tc.mt0.mb4.fw4.lh-solid', 'sqlite3 in the browser'),
-          m('label[for=query].gray.db', 'Query'),
-          m('input[type=text]#query.center.db.code.pa1.mb1.mt1.w-100', {
-            style: 'height: 53px',
-            class: this.queryStyle(attrs.value || ''),
-            value: db === null ? '' : attrs.value,
-            onchange: e => attrs.value = e.target.value,
-            oninput: e => attrs.value = e.target.value,
-            disabled: db === null,
-          }),
-          m('.gray',
-            'Try: ',
-            m('span.blue.pointer', { 
-              onclick: e => attrs.value = e.target.innerText,
-            }, 'select *, round(m*3.28) as ft from peaks order by m desc'), ', ',
-            m('span.blue.pointer', {
-              onclick: e => attrs.value = e.target.innerText,
-            }, 'select sum(m) as elevation from peaks'), '.',
-          ),
-          currentError && m('.red.mt4', currentError.message),
-          currentHeaders && m('table.mt4.collapse.ba.br2.b--black-10.pv2.ph3.w-100',
-            m('tr.striped--light-gray', currentHeaders.map(h => m('th.pv2.ph3.tl.f6.fw6.ttu', h))),
-            currentRows.map(r => m('tr.striped--light-gray',
-              currentHeaders.map(h => m('td.pv2.ph3', r[h]),
-            ))),
-          ),
-          m('.gray.mt5.lh-copy', 'Example'),
-          m('pre.pre.lh-copy.code.f7.f5-ns.mt1', CODE_SAMPLE),
-          m('.mt5.mb5', 'Is the best for reasons.'),
+        children,
          
           m('.tc.mb5',
            m('a.ma2', {"href":"https://github.com/chromy/crunch"}, 
@@ -188,11 +141,74 @@ m("svg", {"id":"n","xmlns":"http://www.w3.org/2000/svg","width":"24","height":"2
     m("path", {"class":"cls-1","d":"M0,16V0H16V16ZM3,3V13H8V5h3v8h2V3Z"}),
     m("path", {"class":"cls-2","d":"M3,3H13V13H11V5H8v8H3Z"})
   ]
-)
-           ),
-),
+)),
+))
 
-        ),
+    ];
+    }
+
+  }
+
+  class Open {
+
+    view() {
+      return [
+        m('h1', 'Hello!')
+      ];
+    }
+
+  }
+
+  class Home {
+
+    queryStyle(query) {
+      const length = query.length;
+      if (length > 70) {
+        return 'f7';
+      } else if (length > 60) {
+        return 'f6';
+      } else if (length > 50) {
+        return 'f5';
+      } else if (length > 40) {
+        return 'f4';
+      } else if (length > 20) {
+        return 'f3';
+      } else {
+        return 'f2';
+      }
+    }
+
+    view({attrs}) {
+      updateQuery(this.value);
+      return [
+          m('label[for=query].gray.db', 'Query'),
+          m('input[type=text]#query.center.db.code.pa1.mb1.mt1.w-100', {
+            style: 'height: 53px',
+            class: this.queryStyle(this.value || ''),
+            value: db === null ? '' : this.value,
+            onchange: e => this.value = e.target.value,
+            oninput: e => this.value = e.target.value,
+            disabled: db === null,
+          }),
+          m('.gray',
+            'Try: ',
+            m('span.blue.pointer', { 
+              onclick: e => this.value = e.target.innerText,
+            }, 'select *, round(m*3.28) as ft from peaks order by m desc'), ', ',
+            m('span.blue.pointer', {
+              onclick: e => this.value = e.target.innerText,
+            }, 'select sum(m) as elevation from peaks'), '.',
+          ),
+          currentError && m('.red.mt4', currentError.message),
+          currentHeaders && m('table.mt4.collapse.ba.br2.b--black-10.pv2.ph3.w-100',
+            m('tr.striped--light-gray', currentHeaders.map(h => m('th.pv2.ph3.tl.f6.fw6.ttu', h))),
+            currentRows.map(r => m('tr.striped--light-gray',
+              currentHeaders.map(h => m('td.pv2.ph3', r[h]),
+            ))),
+          ),
+          m('.gray.mt5.lh-copy', 'Example'),
+          m('pre.pre.lh-copy.code.f7.f5-ns.mt1', CODE_SAMPLE),
+          m('.mt5.mb5', 'Is the best for reasons.'),
       ];
     }
   }
@@ -200,9 +216,18 @@ m("svg", {"id":"n","xmlns":"http://www.w3.org/2000/svg","width":"24","height":"2
   function init() {
     initDb();
     const root = document.querySelector('main');
-    
+
     m.route(root, "/", {
-        "/": Home,
+      "/": {
+        render: function() {
+          return m(Layout, m(Home))
+        }
+      },
+      "/open": {
+        render: function() {
+          return m(Layout, m(Open))
+        }
+      },
     });
   }
 
