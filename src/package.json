@@ -1,7 +1,7 @@
 {
   "name": "@tsundoku/crunch",
   "description": "WASM build of sqlite3 for the browser and server",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "dependencies": {},
   "devDependencies": {},
   "license" : "MIT",
