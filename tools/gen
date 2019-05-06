@@ -530,8 +530,8 @@ def rules(n, src_path, abs_src_path):
     ], implicit=[], implicit_outputs=[
       '$OUT_PKG/crunch.wasm',
     ])
-  n.build('$OUT_PKG/crunch-worker.mjs', 'copy', ['$SRC/src/crunch-worker.mjs'])
-  n.build('$OUT_PKG/crunch-api.mjs', 'copy', ['$SRC/src/crunch-api.mjs'])
+  n.build('$OUT_PKG/.gitignore', 'copy', ['$SRC/src/.gitignore'])
+  n.build('$OUT_PKG/README.md', 'copy', ['$SRC/README.md'])
   n.build('$OUT_PKG/index.mjs', 'copy', ['$SRC/src/index.mjs'])
   n.build('$OUT_PKG/sqlite_codes.mjs', 'copy', ['$SRC/src/sqlite_codes.mjs'])
   n.build('$OUT_PKG/node_modules/ospec/ospec.mjs', 'copy', ['$SRC/deps/mithril/ospec/ospec.mjs'])

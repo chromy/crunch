@@ -1,7 +1,12 @@
 {
-  "name": "crunch",
-  "description": "",
-  "version": "0.0.1",
+  "name": "@tsundoku/crunch",
+  "description": "WASM build of sqlite3 for the browser and server",
+  "version": "0.0.2",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "license" : "MIT",
+  "author": "Hector Dearman",
+  "homepage": "https://github.com/chromy/crunch",
+  "email": "hector.dearman@gmail.com",
+  "keywords": ["sqlite", "sql", "wasm", "webassembly"]
 }
