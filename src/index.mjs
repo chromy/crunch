@@ -7,11 +7,31 @@ class CrunchEngine {
   constructor(module) {
     this.module = module;
     this.raw = new RawCrunchModuleWrapper(module);
+    this.nextId = 1;
+    this.fs = this.module.FS;
   }
 
-  open(opt_file) {
-    const [result, db] = this.raw.sqlite3_open(':memory:');
-    this.module.FS.writeFile('db', 'hello');
+  async open(opt_file) {
+    let uri = ':memory:';
+    if (opt_file) {
+      let filename = `/db${this.nextId++}`;
+      const f = this.fs.open(filename, 'w');
+
+      const p = new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = event => {
+          const buffer = event.target.result;
+          resolve(buffer);
+        };
+        reader.readAsArrayBuffer(opt_file);
+      });
+
+      const buffer = new Uint8Array(await p);
+      this.fs.write(f, buffer, /*offset*/ 0, buffer.byteLength);
+      this.fs.close(f);
+      uri = filename;
+    }
+    const [result, db] = this.raw.sqlite3_open(uri);
     if (result !== SQLITE_OK) {
       throw new Error(`Unable to open database`);
     }

@@ -10,16 +10,17 @@
 <script>
   const CODE_SAMPLE = `import {createEngine} from 'crunch';
 const engine = await crunch.createEngine();
-const db = engine.open();
+const db = await engine.open();
 
 db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
 db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
 db.query('SELECT * FROM peaks');
 `;
+  let engine = null;
   let db = null;
   async function initDb() {
-    const engine = await crunch.createEngine();
-    db = engine.open();
+    engine = await crunch.createEngine();
+    db = await engine.open();
     db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
     db.exec('INSERT INTO peaks (name, m) VALUES ("Annapurna", 8091)');
     db.exec('INSERT INTO peaks (name, m) VALUES ("Broad Peak", 8051)');
@@ -153,7 +154,17 @@ m("svg", {"id":"n","xmlns":"http://www.w3.org/2000/svg","width":"24","height":"2
 
     view() {
       return [
-        m('h1', 'Hello!')
+        m('input[type=file]', {
+          onchange: e => {
+            if (e.target.files.length === 0)
+              return;
+            const f = e.target.files[0];
+            engine.open(f).then(db2 => {
+              db = db2;
+              console.log([...db.query('select * from tweet limit 10')])
+            });
+          },
+        }),
       ];
     }
 
