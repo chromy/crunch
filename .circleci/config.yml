@@ -5,6 +5,6 @@ jobs:
       - image: circleci/python:3.7.2
     steps:
       - checkout
-      - run: echo "hello world"
-      - run: ls
-      - run: pwd
+      - run: tools/deps
+      - run: tools/gen out
+      - run: deps/ninja/ninja -C out
