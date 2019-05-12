@@ -17,7 +17,8 @@ db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
 db.query('SELECT * FROM peaks');
 `;
 
-  const NODE_CODE_SAMPLE = `$ node -e "require('repl').start({ignoreUndefined: true})" --experimental-repl-await
+  const NODE_CODE_SAMPLE = `$ node -e "require('repl').start({ignoreUndefined: true})" \\
+    --experimental-repl-await
 > const {createEngine} = require('@tsundoku/crunch');
 > const engine = await createEngine();
 > const db = await engine.open();

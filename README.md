@@ -9,7 +9,7 @@ $ node -e "require('repl').start({ignoreUndefined: true})" --experimental-repl-a
 > const db = await engine.open();
 > db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
 > db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
-> [...db.query('SELECT * FROM peaks')]
+> [...db.query('SELECT * FROM peaks')];
 [ { name: 'Olympus Mons', m: 21171 } ]
 ```
 
