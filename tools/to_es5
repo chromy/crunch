@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import re
@@ -11,19 +11,19 @@ def main(args):
     with open(in_path, 'rb') as fin:
       text = fin.read()
 
-    text = re.sub(r"import (\w+) from '([A-Za-z./_]*)\.m?js';", r"const \1 = require('\2.js');", text)
-    text = re.sub(r"import (\{[^}]*\}) from '([A-Za-z./_]*)\.m?js';", r"const \1 = require('\2.js');", text)
-    text = re.sub(r"import '([A-Za-z./_]*)\.m?js';", r"require('\1.js');", text)
-    text = re.sub(r"import (\w+) from '([A-Za-z./_]*)';", r"const \1 = require('\2');", text)
-    text = re.sub(r"import (\{[^}]*\}) from '([A-Za-z./_]*)';", r"const \1 = require('\2');", text)
-    text = re.sub(r"import '([A-Za-z./_]*)';", r"require('\1.js');", text)
+    text = re.sub(rb"import (\w+) from '([A-Za-z./_]*)\.m?js';", rb"const \1 = require('\2.js');", text)
+    text = re.sub(rb"import (\{[^}]*\}) from '([A-Za-z./_]*)\.m?js';", rb"const \1 = require('\2.js');", text)
+    text = re.sub(rb"import '([A-Za-z./_]*)\.m?js';", rb"require('\1.js');", text)
+    text = re.sub(rb"import (\w+) from '([A-Za-z./_]*)';", rb"const \1 = require('\2');", text)
+    text = re.sub(rb"import (\{[^}]*\}) from '([A-Za-z./_]*)';", rb"const \1 = require('\2');", text)
+    text = re.sub(rb"import '([A-Za-z./_]*)';", rb"require('\1.js');", text)
 
 
     exports = []
-    for m in re.finditer(r"export (?:(?:const)|(?:async)|(?:function)|(?:class)|\W)*(\w+)", text):
+    for m in re.finditer(rb"export (?:(?:const)|(?:async)|(?:function)|(?:class)|\W)*(\w+)", text):
       exports.append(m.group(1))
-    text = text.replace('export ', '')
-    text += '\n'.join('exports.{name} = {name};'.format(name=name) for name in exports)
+    text = text.replace(b'export ', b'')
+    text += b'\n'.join('exports.{name} = {name};'.format(name=name).encode('utf-8') for name in exports)
 
     with open(out_path, 'wb') as fout:
       fout.write(text)
