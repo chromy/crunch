@@ -33,4 +33,5 @@ SERVER_PID=$!
 
 gsutil -m rsync -n -c -d $TMPDIR/site gs://crunch.tsundoku.io/
 confirm "Upload?" && gsutil -m rsync -c -d $TMPDIR/site gs://crunch.tsundoku.io/
+confirm "Publish?" && npm publish --access public $TMPDIR/crunch/
 

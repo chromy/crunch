@@ -16,6 +16,17 @@ db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
 db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
 db.query('SELECT * FROM peaks');
 `;
+
+  const NODE_CODE_SAMPLE `$ node -e "require('repl').start({ignoreUndefined: true})" --experimental-repl-await
+> const {createEngine} = require('@tsundoku/crunch');
+> const engine = await createEngine();
+> const db = await engine.open();
+> db.exec('CREATE TABLE peaks (name TEXT, m INTEGER)');
+> db.exec('INSERT INTO peaks (name, m) VALUES ("Olympus Mons", 21171)');
+> [...db.query('SELECT * FROM peaks')]
+[ { name: 'Olympus Mons', m: 21171 } ]
+`;
+
   let engine = null;
   let db = null;
   async function initDb() {
@@ -217,8 +228,10 @@ m("svg", {"id":"n","xmlns":"http://www.w3.org/2000/svg","width":"24","height":"2
               currentHeaders.map(h => m('td.pv2.ph3', r[h]),
             ))),
           ),
-          m('.gray.mt5.lh-copy', 'Example'),
+          m('.gray.mt5.lh-copy', 'Browser Example'),
           m('pre.pre.lh-copy.code.f7.f5-ns.mt1', CODE_SAMPLE),
+          m('.gray.mt5.lh-copy', 'Node Example'),
+          m('pre.pre.lh-copy.code.f7.f5-ns.mt1', NODE_CODE_SAMPLE),
           m('.mt5.mb5', 'Is the best for reasons.'),
       ];
     }
