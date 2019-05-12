@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+ROOT=.
+OUT=out
+
+$ROOT/deps/node/bin/node --experimental-modules $OUT/crunch/run_systemtests.mjs
+$ROOT/deps/node/bin/node $OUT/crunch/run_systemtests.js

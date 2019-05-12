@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import sys
+import re
+
+def main(args):
+  paths = args[1:]
+  for in_path in paths:
+    assert in_path.endswith('.mjs')
+    out_path = in_path[:-len('.mjs')] + '.js'
+    with open(in_path, 'rb') as fin:
+      text = fin.read()
+
+    text = re.sub(r"import (\w+) from '([A-Za-z./_]*)\.m?js';", r"const \1 = require('\2.js');", text)
+    text = re.sub(r"import (\{[^}]*\}) from '([A-Za-z./_]*)\.m?js';", r"const \1 = require('\2.js');", text)
+    text = re.sub(r"import '([A-Za-z./_]*)\.m?js';", r"require('\1.js');", text)
+    text = re.sub(r"import (\w+) from '([A-Za-z./_]*)';", r"const \1 = require('\2');", text)
+    text = re.sub(r"import (\{[^}]*\}) from '([A-Za-z./_]*)';", r"const \1 = require('\2');", text)
+    text = re.sub(r"import '([A-Za-z./_]*)';", r"require('\1.js');", text)
+
+
+    exports = []
+    for m in re.finditer(r"export (?:(?:const)|(?:async)|(?:function)|(?:class)|\W)*(\w+)", text):
+      exports.append(m.group(1))
+    text = text.replace('export ', '')
+    text += '\n'.join('exports.{name} = {name};'.format(name=name) for name in exports)
+
+    with open(out_path, 'wb') as fout:
+      fout.write(text)
+
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv))

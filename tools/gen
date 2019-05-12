@@ -228,6 +228,7 @@ def rules(n, src_path, abs_src_path):
     '$SRC/tools/gen_raw_bindings $in $out',
     description='GEN RAW BINDINGS',
   )
+  n.rule('to_es5', '$SRC/tools/to_es5 $in', description='ES5')
   n.rule('copy', 'cp -rf $in $out', description='COPY')
   n.rule('bundle', 'px --external-core $in -o $out', description='BUNDLE')
   emconfig = ';'.join([
@@ -532,19 +533,35 @@ def rules(n, src_path, abs_src_path):
     ])
   n.build('$OUT_PKG/.gitignore', 'copy', ['$SRC/src/.gitignore'])
   n.build('$OUT_PKG/README.md', 'copy', ['$SRC/README.md'])
-  n.build('$OUT_PKG/index.mjs', 'copy', ['$SRC/src/index.mjs'])
-  n.build('$OUT_PKG/sqlite_codes.mjs', 'copy', ['$SRC/src/sqlite_codes.mjs'])
   n.build('$OUT_PKG/node_modules/ospec/ospec.mjs', 'copy', ['$SRC/deps/mithril/ospec/ospec.mjs'])
   n.build('$OUT_PKG/node_modules/ospec/ospec.js', 'copy', ['$SRC/deps/mithril/ospec/ospec.js'])
   n.build('$OUT_PKG/node_modules/ospec/package.json', 'copy', ['$SRC/deps/mithril/ospec/package.json'])
-  n.build('$OUT_PKG/end_to_end_systemtest.mjs', 'copy', ['$SRC/src/end_to_end_systemtest.mjs'])
-  n.build('$OUT_PKG/sqlite_raw_bindings_systemtest.mjs', 'copy', ['$SRC/src/sqlite_raw_bindings_systemtest.mjs'])
-  n.build('$OUT_PKG/run_systemtests.mjs', 'copy', ['$SRC/src/run_systemtests.mjs'])
-  n.build('$OUT_PKG/browser_entry_point.mjs', 'copy', ['$SRC/src/browser_entry_point.mjs'])
+
+  src_paths = [
+    'end_to_end_systemtest.mjs',
+    'sqlite_raw_bindings_systemtest.mjs',
+    'run_systemtests.mjs',
+    'browser_entry_point.mjs',
+    'index.mjs',
+    'sqlite_codes.mjs',
+  ]
+
+  for path in src_paths:
+    out_path = '$OUT_PKG/{}'.format(path)
+    n.build(out_path, 'copy', '$SRC/src/{}'.format(path))
+    n.build(out_path.replace('mjs', 'js'), 'to_es5', out_path, 
+       implicit=['$SRC/tools/to_es5'],
+    )
+
+
   n.build('$OUT_PKG/package.json', 'copy', ['$SRC/src/package.json'])
   n.build('$OUT_PKG/raw.mjs', 'gen_raw_bindings', ['$SRC/deps/sqlite/sqlite3.h'], implicit=[
     '$SRC/tools/gen_raw_bindings',
   ])
+  n.build('$OUT_PKG/raw.js', 'to_es5', '$OUT_PKG/raw.mjs', 
+     implicit=['$SRC/tools/to_es5'],
+  )
+
   n.build('$OUT_PKG/crunch.bundle.js', 'bundle', ['$OUT_PKG/browser_entry_point.mjs'], implicit=[
     '$OUT_PKG/index.mjs',
     '$OUT_PKG/sqlite_codes.mjs',

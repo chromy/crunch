@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+DIR="$( cd "$(dirname "$( dirname "${BASH_SOURCE[0]}" )" )" && pwd )"
+TMPDIR="$( mktemp -d )"
+
+confirm() {
+  # call with a prompt string or use a default
+  read -r -p "${1:-Are you sure? [y/N]} " response
+  case "$response" in
+    [yY][eE][sS]|[yY]) 
+      true
+      ;;
+    *)
+      false
+      ;;
+  esac
+}
+
+trap 'cleanup' INT TERM EXIT
+cleanup () {
+  [ -d "$TMPDIR" ] && rm -rf "$TMPDIR"
+  kill $SERVER_PID
+}
+
+$DIR/tools/gen $TMPDIR
+$DIR/deps/ninja/ninja -C $TMPDIR
+
+cd $TMPDIR/site
+python3 -m http.server 8000 &> /dev/null &
+SERVER_PID=$!
+
+gsutil -m rsync -n -c -d $TMPDIR/site gs://crunch.tsundoku.io/
+confirm "Upload?" && gsutil -m rsync -c -d $TMPDIR/site gs://crunch.tsundoku.io/
+
