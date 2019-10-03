@@ -23,7 +23,7 @@ def main(args):
     for m in re.finditer(rb"export (?:(?:const)|(?:async)|(?:function)|(?:class)|\W)*(\w+)", text):
       exports.append(m.group(1))
     text = text.replace(b'export ', b'')
-    text += b'\n'.join('exports.{name} = {name};'.format(name=name).encode('utf-8') for name in exports)
+    text += b'\n'.join('exports.{name} = {name};'.format(name=name.decode('utf-8')).encode('utf-8') for name in exports)
 
     with open(out_path, 'wb') as fout:
       fout.write(text)
