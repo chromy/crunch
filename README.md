@@ -29,6 +29,6 @@ $ tools/deps/ninja -C out
 
 ## Test
 ```
-$ deps/node/bin/node --experimental-modules out/crunch/run_systemtests.mjs
+$ tools/test
 ```
 
