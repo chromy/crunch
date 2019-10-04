@@ -202,7 +202,7 @@ def main():
     src_path = abs_src_path
 
   pathlib.Path(out_path).mkdir(parents=True, exist_ok=True)
-  
+
   regenerate_args = ' '.join(sys.argv[1:])
 
   with open(build_path, 'w') as f:
@@ -549,7 +549,7 @@ def rules(n, src_path, abs_src_path):
   for path in src_paths:
     out_path = '$OUT_PKG/{}'.format(path)
     n.build(out_path, 'copy', '$SRC/src/{}'.format(path))
-    n.build(out_path.replace('mjs', 'js'), 'to_es5', out_path, 
+    n.build(out_path.replace('mjs', 'js'), 'to_es5', out_path,
        implicit=['$SRC/tools/to_es5'],
     )
 
@@ -558,7 +558,7 @@ def rules(n, src_path, abs_src_path):
   n.build('$OUT_PKG/raw.mjs', 'gen_raw_bindings', ['$SRC/deps/sqlite/sqlite3.h'], implicit=[
     '$SRC/tools/gen_raw_bindings',
   ])
-  n.build('$OUT_PKG/raw.js', 'to_es5', '$OUT_PKG/raw.mjs', 
+  n.build('$OUT_PKG/raw.js', 'to_es5', '$OUT_PKG/raw.mjs',
      implicit=['$SRC/tools/to_es5'],
   )
 
@@ -573,6 +573,7 @@ def rules(n, src_path, abs_src_path):
   n.build('$OUT_SITE/crunch.wasm', 'copy', ['$OUT_PKG/crunch.wasm'])
   n.build('$OUT_SITE/crunch.bundle.js', 'copy', ['$OUT_PKG/crunch.bundle.js'])
   n.build('$OUT_SITE/index.html', 'copy', ['$SRC/src/crunch.html'])
+  n.build('$OUT_SITE/docs/index.html', 'copy', ['$SRC/docs/index.html'])
 
 
 if __name__ == '__main__':
