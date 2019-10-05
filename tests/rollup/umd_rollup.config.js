@@ -1,4 +1,5 @@
 import commonjs from 'rollup-plugin-commonjs';
+import nodeGlobals from 'rollup-plugin-node-globals';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
@@ -9,9 +10,14 @@ export default {
     format: 'umd'
   },
   plugins: [
-    nodeResolve(),
+    nodeResolve({
+      mainFields: ['main'],
+    }),
     commonjs({
-      ignore: ['util'],
+      ignore: ['util', 'fs', 'path', 'crypto'],
+    }),
+    nodeGlobals({
+      process: false,
     }),
   ]
 };

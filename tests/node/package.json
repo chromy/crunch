@@ -1,0 +1,16 @@
+{
+  "name": "test_crunch_node",
+  "version": "1.0.0",
+  "description": "Test importing crunch in node",
+  "repository": "https://github.com/chromy/crunch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "crunch": "../../crunch",
+    "ospec": "^4.0.1"
+  }
+}

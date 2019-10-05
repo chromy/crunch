@@ -1,5 +1,6 @@
 import commonjs from 'rollup-plugin-commonjs';
 import nodeResolve from 'rollup-plugin-node-resolve';
+import nodeGlobals from 'rollup-plugin-node-globals';
 
 export default {
   input: 'main.js',
@@ -10,10 +11,13 @@ export default {
   },
   plugins: [
     nodeResolve({
-      preferBuiltins: true,
+      mainFields: ['main'],
     }),
     commonjs({
-      ignore: ['util'],
+      ignore: ['util', 'fs', 'path', 'crypto'],
+    }),
+    nodeGlobals({
+      process: false,
     }),
   ]
 };

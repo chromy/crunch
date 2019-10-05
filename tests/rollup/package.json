@@ -1,7 +1,8 @@
 {
-  "name": "rollup_simple",
+  "name": "test_crunch_rollup",
   "version": "1.0.0",
-  "description": "",
+  "description": "Test bundling crunch in rollup",
+  "repository": "https://github.com/chromy/crunch",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,10 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "crunch": "../../crunch",
     "ospec": "^4.0.1",
     "rollup": "^1.23.0",
     "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "crunch": "../../crunch"
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }

@@ -8,6 +8,8 @@
   "author": "Hector Dearman",
   "homepage": "https://github.com/chromy/crunch",
   "email": "hector.dearman@gmail.com",
+  "main": "index.js",
   "module": "index.mjs",
+  "unpkg": "crunch.bundle.js",
   "keywords": ["sqlite", "sql", "wasm", "webassembly"]
 }

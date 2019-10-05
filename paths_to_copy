@@ -1,5 +1,8 @@
-tests/rollup_simple/main.js
-tests/rollup_simple/package-lock.json
-tests/rollup_simple/package.json
-tests/rollup_simple/cjs_rollup.config.js
-tests/rollup_simple/umd_rollup.config.js
+tests/rollup/main.js
+tests/rollup/package-lock.json
+tests/rollup/package.json
+tests/rollup/cjs_rollup.config.js
+tests/rollup/umd_rollup.config.js
+tests/node/main.js
+tests/node/package-lock.json
+tests/node/package.json

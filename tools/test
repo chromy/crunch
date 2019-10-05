@@ -1,16 +1,28 @@
 #!/bin/bash
 set -e
 
+if [ -z "$1" ]; then
+  echo "Usage: $0 path/to/build/dir"
+  exit 1;
+fi
+
 ROOT="$( cd "$( dirname "$( dirname "${BASH_SOURCE[0]}" )" )" && pwd )"
-OUT=out
+OUT=$1
 
 # $ROOT/deps/node/bin/node --experimental-modules $OUT/crunch/run_systemtests.mjs
 # $ROOT/deps/node/bin/node $OUT/crunch/run_systemtests.js
 
 (
-cd $OUT/tests/rollup_simple
+cd $OUT/tests/node
+$ROOT/deps/node/bin/npm ci
+$ROOT/deps/node/bin/node main.js
+)
+
+(
+cd $OUT/tests/rollup
 rm -f cjs_bundle.js umd_bundle.js
 $ROOT/deps/node/bin/npm ci
+$ROOT/deps/node/bin/node main.js
 $ROOT/deps/node/bin/node node_modules/.bin/rollup -c cjs_rollup.config.js
 $ROOT/deps/node/bin/node node_modules/.bin/rollup -c umd_rollup.config.js
 $ROOT/deps/node/bin/node cjs_bundle.js

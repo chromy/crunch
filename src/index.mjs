@@ -154,9 +154,8 @@ export async function createEngine() {
     const module = CrunchModule({
       noInitialRun: true,
       locateFile: (path, prefix) => {
-        return path;
-        //console.log(path, prefix);
-        //return __filename + '/' + path;
+        const newPath = __dirname + '/' + path;
+        return newPath;
       },
       onRuntimeInitialized: () => {
         module.then = null;
