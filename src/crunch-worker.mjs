@@ -22,7 +22,7 @@ const module = CrunchModule({
       if (message.args === undefined) {
         throw new Error(`Message should have args (message: "${message}")`);
       }
-      
+
       const name = 'crunch_' + message.name;
       if (wrapper[name] === undefined) {
         throw new Error(`No method named ${name} (message: "${message}")`);

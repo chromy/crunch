@@ -1,0 +1,5 @@
+tests/rollup_simple/main.js
+tests/rollup_simple/package-lock.json
+tests/rollup_simple/package.json
+tests/rollup_simple/cjs_rollup.config.js
+tests/rollup_simple/umd_rollup.config.js

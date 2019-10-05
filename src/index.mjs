@@ -153,6 +153,11 @@ export async function createEngine() {
   const module = await new Promise((resolve, reject) => {
     const module = CrunchModule({
       noInitialRun: true,
+      locateFile: (path, prefix) => {
+        return path;
+        //console.log(path, prefix);
+        //return __filename + '/' + path;
+      },
       onRuntimeInitialized: () => {
         module.then = null;
         resolve(module);

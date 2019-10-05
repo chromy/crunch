@@ -217,7 +217,7 @@ def rules(n, src_path, abs_src_path):
   n.newline()
   n.rule('gen', '$in .', description='GEN', generator=True)
   n.newline()
-  n.build('$OUT/build.ninja', 'gen', '$SRC/tools/gen', implicit=[])
+  n.build('$OUT/build.ninja', 'gen', '$SRC/tools/gen', implicit=['$SRC/paths_to_copy'])
 
   n.newline()
   n.variable('ABS_SRC', os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
@@ -575,6 +575,11 @@ def rules(n, src_path, abs_src_path):
   n.build('$OUT_SITE/index.html', 'copy', ['$SRC/src/crunch.html'])
   n.build('$OUT_SITE/docs/index.html', 'copy', ['$SRC/docs/index.html'])
 
+  n.newline()
+  with open(os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'paths_to_copy'))) as f:
+    for line in f:
+      name = line.strip()
+      n.build(f'$OUT/{name}', 'copy', f'$SRC/{name}')
 
 if __name__ == '__main__':
   exit(main())
